@@ -11,11 +11,12 @@ if __name__ == "__main__":
     
     parser = argparse.ArgumentParser()
     parser.add_argument("--config_path", type=str, default="./config/xy_tokenizer_config.yaml")
-    parser.add_argument("--checkpoint_path", type=str, default="./weights/xy_tokenizer.ckpt")
-    parser.add_argument("--device", type=str, default="cuda")
+    parser.add_argument("--checkpoint_path", type=str, default="./weights/XY_Tokenizer_TTSD_V0/xy_tokenizer.ckpt")
+    parser.add_argument("--device", type=str, default="cuda:0")
     
-    parser.add_argument("--input_dir", type=str, required=True)
-    parser.add_argument("--output_dir", type=str, required=True)
+    parser.add_argument("--batch_size", type=int, default=8)
+    parser.add_argument("--input_dir", type=str, default="input_wavs")
+    parser.add_argument("--output_dir", type=str, default="output_wavs")
     
     
     parser.add_argument("--debug_ip", type=str)
@@ -41,7 +42,7 @@ if __name__ == "__main__":
 
     with torch.no_grad():
         ## Process audios in batches
-        batch_size = 8
+        batch_size = args.batch_size
         for i in range(0, len(audio_paths), batch_size):
             batch_paths = audio_paths[i:i + batch_size]
             logging.info(f"Processing batch {i // batch_size + 1}/{len(audio_paths) // batch_size + 1}, files: {batch_paths}")
@@ -51,10 +52,11 @@ if __name__ == "__main__":
             logging.info(f"Successfully loaded {len(wav_list)} audio files with lengths {[len(wav) for wav in wav_list]} samples")
 
             # Encode
+            import pdb; pdb.set_trace()
             encode_result = generator.encode(wav_list, overlap_seconds=10)
             codes_list = encode_result["codes_list"]  # B * (nq, T)
             logging.info(f"Encoding completed, code lengths: {[codes.shape[-1] for codes in codes_list]}")
-            logging.info(f"{codes_list = }")
+            # logging.info(f"{codes_list = }")
 
             # Decode
             decode_result = generator.decode(codes_list, overlap_seconds=10)
